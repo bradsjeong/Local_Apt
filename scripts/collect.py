@@ -10,6 +10,8 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+import urllib.error
+import re
 import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta, timezone
 
@@ -29,7 +31,8 @@ def parse_page(payload):
     root = ET.fromstring(payload)
     code = root.findtext('.//resultCode')
     if code not in ('000', '00', '0000'):
-        raise ValueError('공공데이터 응답 오류: 활용 승인·인증키·호출량을 확인하세요.')
+        safe_code=re.sub(r'[^A-Za-z0-9_-]', '', code or root.findtext('.//returnReasonCode') or 'UNKNOWN')[:30]
+        raise ValueError('API_CODE_'+safe_code)
     total = root.findtext('.//totalCount')
     if total is None:
         raise ValueError('응답에 totalCount가 없습니다.')
@@ -79,9 +82,10 @@ def fetch_month(key, code, month):
                 with urllib.request.urlopen(url,timeout=40) as response:
                     count, items=parse_page(response.read())
                 break
-            except Exception:
+            except Exception as error:
+                reason=('HTTP_'+str(error.code)) if isinstance(error,urllib.error.HTTPError) else (str(error) if isinstance(error,ValueError) and str(error).startswith('API_CODE_') else 'NETWORK_OR_RESPONSE')
                 if attempt==2:
-                    raise RuntimeError(f'{code} / {month} / {page}페이지 수집 실패. 인증키·활용 승인·서비스 상태를 확인하세요.') from None
+                    raise RuntimeError(f'{code} / {month} / {page}페이지 수집 실패 ({reason}). 인증키·활용 승인·서비스 상태를 확인하세요.') from None
                 time.sleep(2**attempt)
         if total is not None and total!=count:
             raise RuntimeError('수집 중 총 건수가 변경되었습니다. 다시 실행하세요.')
