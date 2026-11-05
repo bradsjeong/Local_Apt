@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+site/data/jinju.json
+site/data/geoje.json
+*.tmp
