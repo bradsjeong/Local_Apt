@@ -30,6 +30,10 @@ jobs:
         env:
           MOLIT_SERVICE_KEY: ${{ secrets.MOLIT_SERVICE_KEY }}
         run: python scripts/collect.py
+      - name: Collect Applyhome prices
+        env:
+          APPLYHOME_SERVICE_KEY: ${{ secrets.APPLYHOME_SERVICE_KEY }}
+        run: python scripts/collect_applyhome.py
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Preserve data snapshot
