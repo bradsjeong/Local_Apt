@@ -1,0 +1,19 @@
+name: Inspect KOSIS statistics
+on:
+  push:
+    paths: ['scripts/kosis_client.py', '.github/workflows/kosis-inspect.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/kosis_client.py
+        env:
+          KOSIS_API_KEY: ${{ secrets.KOSIS_API_KEY }}
