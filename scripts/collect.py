@@ -72,6 +72,29 @@ def aggregate(records, fetched_at, start, end, city):
             'notes':['해제 거래 제외', '금액 단위: 만원', '최근 신고·정정으로 수치가 변경될 수 있음',
                      '동일 가격·면적 거래를 임의 중복 제거하지 않음']}
 
+def diagnose_access(key):
+    allowed_errors = ('SERVICE_KEY_IS_NOT_REGISTERED_ERROR','SERVICE_ACCESS_DENIED_ERROR',
+        'SERVICE_KEY_IS_NULL','DEADLINE_HAS_EXPIRED_ERROR','LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS_ERROR',
+        'PERMISSION_DENIED','ACCESS_DENIED','Forbidden','Unauthorized')
+    for label, endpoint in [('detailed', API), ('standard', API.replace('TradeDev','Trade'))]:
+        params={'serviceKey':urllib.parse.unquote(key),'LAWD_CD':'48170','DEAL_YMD':datetime.now(KST).strftime('%Y%m'),'numOfRows':1,'pageNo':1}
+        request=urllib.request.Request(endpoint+'?'+urllib.parse.urlencode(params),headers={'Accept':'application/xml','User-Agent':'LocalApt/1.0'})
+        try:
+            with urllib.request.urlopen(request,timeout=30) as response:
+                body=response.read(65536);status=response.status
+        except urllib.error.HTTPError as error:
+            status=error.code;body=error.read(65536)
+        except Exception:
+            print('Access check '+label+': transport failure');continue
+        text=body.decode('utf-8',errors='replace')
+        indicators=[term for term in allowed_errors if term in text]
+        try:
+            root=ET.fromstring(body)
+            code=root.findtext('.//resultCode') or root.findtext('.//returnReasonCode') or ''
+            if re.fullmatch(r'[0-9]{1,4}',code):indicators.append('API_CODE_'+code)
+        except ET.ParseError:pass
+        print('Access check '+label+': HTTP '+str(status)+'; '+(', '.join(indicators) or 'unclassified response'))
+
 def fetch_month(key, code, month):
     result=[]; page=1; total=None
     while total is None or len(result)<total:
@@ -79,7 +102,8 @@ def fetch_month(key, code, month):
         url=API+'?'+urllib.parse.urlencode(params)
         for attempt in range(3):
             try:
-                with urllib.request.urlopen(url,timeout=40) as response:
+                request=urllib.request.Request(url,headers={'Accept':'application/xml','User-Agent':'LocalApt/1.0'})
+                with urllib.request.urlopen(request,timeout=40) as response:
                     count, items=parse_page(response.read())
                 break
             except Exception as error:
@@ -106,6 +130,7 @@ def main():
     key=os.environ.get('MOLIT_SERVICE_KEY','').strip()
     if not key:
         raise RuntimeError('MOLIT_SERVICE_KEY가 등록되지 않았습니다. 수집과 배포를 중단합니다.')
+    diagnose_access(key)
     period=list(months(args.start,args.end))
     if not period or len(period)>600:raise ValueError('조회 기간을 확인하세요.')
     fetched=datetime.now(KST).isoformat(timespec='seconds'); snapshots={}
