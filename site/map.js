@@ -26,6 +26,7 @@
             clearTimeout(timeout);
             // Do not place markers using an approximate administrative-district centroid.
             const found=results?.find(r=>r.address && canonicalAddress(r.address.address_name)===canonicalAddress(u.address));
+            if(!found)console.warn('Address lookup:',status,u.address,results?.[0]?.address?.address_name||'no address');
             resolve(status===kakao.maps.services.Status.OK&&found?new kakao.maps.LatLng(+found.y,+found.x):null);
           });
         });
