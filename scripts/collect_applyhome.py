@@ -90,7 +90,7 @@ def main():
         excluded = 0
         for row in rows:
             address = str(row.get('HSSPLY_ADRES') or '')
-            if not re.match(r'^(경상남도|경남)\s+'+city+r'시\s', address) or str(row.get('RENT_SECD')) != '0':
+            if not re.match(r'^(경상남도|경남)\s+'+city+r'시\s', address) or str(row.get('RENT_SECD')) != '0' or '분양전환' in str(row.get('HOUSE_NM','')):
                 excluded += 1
                 continue
             identity = (str(row['HOUSE_MANAGE_NO']),str(row['PBLANC_NO']))
