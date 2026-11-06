@@ -15,8 +15,8 @@ import re
 import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta, timezone
 
-API = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev'
-SOURCE = 'https://www.data.go.kr/data/15126468/openapi.do'
+API = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade'
+SOURCE = 'https://www.data.go.kr/data/15126469/openapi.do'
 CITIES = {'jinju': ('진주', '48170'), 'geoje': ('거제', '48310')}
 KST = timezone(timedelta(hours=9))
 
@@ -130,13 +130,14 @@ def main():
     key=os.environ.get('MOLIT_SERVICE_KEY','').strip()
     if not key:
         raise RuntimeError('MOLIT_SERVICE_KEY가 등록되지 않았습니다. 수집과 배포를 중단합니다.')
-    diagnose_access(key)
     period=list(months(args.start,args.end))
     if not period or len(period)>600:raise ValueError('조회 기간을 확인하세요.')
     fetched=datetime.now(KST).isoformat(timespec='seconds'); snapshots={}
     for slug,(city,code) in CITIES.items():
         records=[];cancelled=0
         for month in period:
+            if month.endswith('01'):
+                print(f'{city}: {month[:4]}년 수집 중', flush=True)
             for row in fetch_month(key,code,month):
                 normalized=normalize(row,city,code)
                 if normalized:records.append(normalized)

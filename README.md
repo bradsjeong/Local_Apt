@@ -4,7 +4,7 @@
 
 ## 게시 및 수집 설정
 
-1. 공공데이터포털에서 **국토교통부 아파트 매매 실거래가 상세 자료** 활용신청을 승인받습니다: https://www.data.go.kr/data/15126468/openapi.do
+1. 공공데이터포털에서 **국토교통부 아파트 매매 실거래가 자료** 활용신청을 승인받습니다: https://www.data.go.kr/data/15126469/openapi.do
 2. 저장소 **Settings → Secrets and variables → Actions → New repository secret**에서 `MOLIT_SERVICE_KEY`에 일반 인증키(Decoding)를 등록합니다. 공개 파일에 인증키를 쓰지 않습니다.
 3. **Settings → Pages → Build and deployment → Source: GitHub Actions**를 선택합니다.
 4. **Actions → Collect data and publish Pages → Run workflow**를 실행합니다. 처음에는 2010년 1월부터 현재월까지 진주·거제를 모두 수집하므로 시간이 걸립니다.
