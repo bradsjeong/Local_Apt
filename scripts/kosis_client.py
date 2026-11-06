@@ -27,14 +27,18 @@ def request(endpoint, **params):
             time.sleep(3)
 
 if __name__=='__main__':
-    try:
-        for query in ['미분양주택현황 시군구','행정구역 세대수','시군구별 주요고용지표','시군구 산업별 취업자']:
-            rows=request('statisticsSearch.do',method='getList',searchNm=query,resultCount=8,startCount=1)
+    for query in ['고용률','산업별 취업자','준공후 미분양']:
+        try:
+            rows=request('statisticsSearch.do',method='getList',searchNm=query,resultCount=12,startCount=1)
             print(query,json.dumps([{k:r.get(k) for k in ['ORG_ID','TBL_ID','TBL_NM','END_PRD_DE']} for r in rows],ensure_ascii=False),flush=True)
+        except RuntimeError as e:print(query,str(e),flush=True)
+    for org,tbl in [('101','DT_1B040A3'),('101','DT_1B040B3'),('116','DT_MLTM_2082')]:
         for kind in ['ITM','PRD']:
-            rows=request('statisticsData.do',method='getMeta',type=kind,orgId='101',tblId='DT_1B040A3')
-            if kind=='ITM':rows=[r for r in rows if r.get('ITM_NM') in ['진주시','거제시','총인구수']]
-            print(kind,json.dumps(rows,ensure_ascii=False),flush=True)
-    except Exception as e:
-        print(str(e) if isinstance(e,RuntimeError) else 'KOSIS schema error')
-        raise SystemExit(1)
+            try:
+                rows=request('statisticsData.do',method='getMeta',type=kind,orgId=org,tblId=tbl)
+                if kind=='ITM':
+                    chosen=[r for r in rows if '진주' in str(r) or '거제' in str(r) or r.get('OBJ_ID') in ('ITM','ITEM')]
+                    print(tbl,'OBJECTS',sorted(set(str(r.get('OBJ_ID'))+':'+str(r.get('OBJ_NM')) for r in rows)),flush=True)
+                    rows=chosen or rows[:12]
+                print(tbl,kind,json.dumps(rows,ensure_ascii=False),flush=True)
+            except RuntimeError as e:print(tbl,str(e),flush=True)
