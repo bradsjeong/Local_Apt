@@ -1,6 +1,7 @@
 (() => {
   let map,geocoder,ready=false,generation=0,overlays=[];
   const coords=new Map();
+  const canonicalAddress=s=>String(s||'').trim().replace(/^경남\s+/, '경상남도 ').replace(/\s+/g,' ');
   const centers={jinju:[35.180,128.108],geoje:[34.880,128.621]};
   const host=$('kakaoMap');
   function clear(){overlays.forEach(o=>o.setMap(null));overlays=[];}
@@ -24,7 +25,7 @@
           geocoder.addressSearch(u.address,(results,status)=>{
             clearTimeout(timeout);
             // Do not place markers using an approximate administrative-district centroid.
-            const found=results?.find(r=>r.address?.address_name===u.address);
+            const found=results?.find(r=>r.address && canonicalAddress(r.address.address_name)===canonicalAddress(u.address));
             resolve(status===kakao.maps.services.Status.OK&&found?new kakao.maps.LatLng(+found.y,+found.x):null);
           });
         });

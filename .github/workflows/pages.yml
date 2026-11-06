@@ -21,7 +21,12 @@ jobs:
           python-version: '3.12'
       - name: Verify collector
         run: python -m unittest discover -s tests -v
+      - name: Reuse published snapshot for interface changes
+        id: snapshot
+        if: github.event_name == 'push'
+        run: python scripts/reuse_snapshot.py
       - name: Collect official transactions
+        if: steps.snapshot.outputs.ready != 'true'
         env:
           MOLIT_SERVICE_KEY: ${{ secrets.MOLIT_SERVICE_KEY }}
         run: python scripts/collect.py
