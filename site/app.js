@@ -40,15 +40,6 @@ function renderAnnual(){
   $('marketSummary').textContent=`${cityNames[state.city]} 전체 법정동 기준 · 면적 필터 적용 · ${years[0]}~${years.at(-1)} 거래 표본. 법정동·검색 필터는 단지 목록에만 적용됩니다.`;
 }
 function renderBuy(){const b=+$('budget').value;const units=(state.data.jinju?.complexes||[]).filter(u=>relevant(u).length&&latest(u).amount<=b*10000).sort((a,b)=>latest(b).date.localeCompare(latest(a).date));$('buyResult').textContent=state.data.jinju?(units.length?`조건에 맞는 단지 ${units.length}곳. 최근 거래 순: `+units.slice(0,5).map(u=>`${u.name} ${money(latest(u).amount)} (${latest(u).date})`).join(' / '):'예산과 면적 조건에 맞는 거래가 없습니다.'):'진주 실거래 자료 미수집';}
-function simulate(){
-  if(!$('holding').checkValidity())return;
-  const price=+$('price').value,purchase=+$('purchase').value,rent=+$('rent').value,cost=+$('cost').value,rate=+$('rate').value;
-  const now=new Date(),end=new Date($('expiry').value+'T00:00:00');
-  const remaining=Math.max(0,(end-now)/86400000/(365.25/12));
-  const renewal=$('renew').value,paths=renewal==='unknown'?[0,24]:[+renewal],transfer=$('transfer').checked;
-  $('sellSummary').textContent=`${$('homeName').value||'보유주택'} · 기준가격과 매수가 차이 ${(price-purchase).toFixed(2)}억원. 연 ${rate}%는 사용자 가정입니다.`;
-  $('sellTable').innerHTML=[0,12,24,36].map(m=>{const v=price*Math.pow(1+rate/100,m/12);return `<tr><td>${m}개월 후</td><td>${v.toFixed(2)}억</td><td>${paths.map(p=>`${renewal==='unknown'?(p?'갱신 ':'미갱신 '):''}${(v+(rent*Math.min(m,remaining+p)-cost*m/12)/10000).toFixed(2)}억`).join('<br>')}</td><td>${paths.map(p=>`${renewal==='unknown'?(p?'갱신: ':'미갱신: '):''}${m<remaining+p?(transfer?'승계 매도 검토':'임대 중 · 퇴거 미가정'):'퇴거 합의 가정'}`).join('<br>')}</td></tr>`;}).join('');renderScenario();
-}
 function renderScenario(){let p=+$('price').value,r=+$('rate').value,m=+$('months').value;$('monthLabel').textContent=m+'개월';if(!p)return;$('scenarioCards').innerHTML=[-3,0,3].map(delta=>`<div><span>연 ${(r+delta).toFixed(1)}% 가정</span><strong>${(p*Math.pow(1+(r+delta)/100,m/12)).toFixed(2)}억</strong><small>${m}개월 후</small></div>`).join('');}
-document.querySelectorAll('[data-city]').forEach(b=>b.onclick=()=>changeCity(b.dataset.city));$('area').onchange=()=>render();$('size').onchange=()=>render();$('search').oninput=()=>render();$('prev').onclick=()=>{state.page--;render(false);};$('next').onclick=()=>{state.page++;render(false);};$('units').onclick=e=>{const b=e.target.closest('[data-unit]');if(b)selectUnit(b.dataset.unit);};$('budget').oninput=renderBuy;$('holding').onsubmit=e=>{e.preventDefault();simulate();};$('months').oninput=renderScenario;
+document.querySelectorAll('[data-city]').forEach(b=>b.onclick=()=>changeCity(b.dataset.city));$('area').onchange=()=>render();$('size').onchange=()=>render();$('search').oninput=()=>render();$('prev').onclick=()=>{state.page--;render(false);};$('next').onclick=()=>{state.page++;render(false);};$('units').onclick=e=>{const b=e.target.closest('[data-unit]');if(b)selectUnit(b.dataset.unit);};$('budget').oninput=renderBuy;$('months').oninput=renderScenario;
 Promise.all([load('jinju'),load('geoje')]).then(()=>changeCity(state.city));

@@ -21,6 +21,8 @@ jobs:
           python-version: '3.12'
       - name: Verify collector
         run: python -m unittest discover -s tests -v
+      - name: Verify exit calculations
+        run: node tests/test_exit.cjs
       - name: Reuse published snapshot for interface changes
         id: snapshot
         if: github.event_name == 'push'
