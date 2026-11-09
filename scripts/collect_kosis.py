@@ -34,6 +34,8 @@ def normalize(rows):
         seen.add(identity)
         label=' · '.join([row['ITM_NM']]+[d[1] for d in dims])
         unit=row.get('UNIT_NM') or ('호' if row['TBL_ID']=='DT_MLTM_2082' else '')
+        # Some mixed-unit tables return the table-wide unit for every item.
+        if '(%)' in row['ITM_NM'].replace(' ', ''):unit='%'
         series=result[city].setdefault(key,{'id':key,'label':label,'item':row['ITM_NM'],'dimensions':[d[1] for d in dims], 'unit':unit,'frequency':row['PRD_SE'],'points':[]})
         if series['unit']!=unit or series['frequency']!=row['PRD_SE']:raise ValueError('Inconsistent observation units')
         series['points'].append({'period':row['PRD_DE'],'value':numeric(row.get('DT')),'raw':row.get('DT'),'revised':row.get('LST_CHN_DE')})

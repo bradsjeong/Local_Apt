@@ -18,7 +18,7 @@
     if(!data){host.innerHTML='<article class="card"><h3>미분양·인구·산업 통계</h3><p>'+(error||'KOSIS 자료 확인 중')+'</p></article>';return;}
     const city=data.cities[state.city];
     host.innerHTML=`<div class="section-title"><h3>${cityNames[state.city]} 미분양·인구·고용</h3><span class="tag">KOSIS 공식 자료 · 수집 ${esc(data.fetchedAt.slice(0,10))}</span></div><p class="caption">도시 전체 통계입니다. 상단 면적·법정동·검색 필터는 적용되지 않습니다. 지표마다 발표 주기와 기준 시점이 다릅니다.</p><div class="grid">${Object.entries(city).map(([id,t])=>{
-      const list=t.series;if(!list.length)return `<article class="card"><h3>${esc(t.title)}</h3><p>자료 미수집</p></article>`;
+      const list=t.series.filter(s=>!/^RSE\b/i.test(s.item));if(!list.length)return `<article class="card"><h3>${esc(t.title)}</h3><p>자료 미수집</p></article>`;
       if(!list.some(s=>s.id===selected[id]))selected[id]=(list.find(s=>/고용률/.test(s.item)&&s.dimensions.every(d=>/전체|계|15세이상/.test(d)))||list.find(s=>s.dimensions.every(d=>/전체|계/.test(d)))||list[0]).id;
       const s=list.find(s=>s.id===selected[id]);
       return `<article class="card"><h3>${esc(t.title)}</h3><label>통계 항목<select data-indicator="${id}">${list.map(x=>`<option value="${esc(x.id)}" ${s.id===x.id?'selected':''}>${esc(x.label)}</option>`).join('')}</select></label><div id="indicator-${id}">${seriesView(s)}</div><p class="caption">${id==='industry'?'근무지 기준 취업자입니다. 11차 산업분류 제공기간만 표시하며 이전 분류와 합산하지 않습니다. 조선·항공 개별 기업의 실적을 뜻하지 않습니다.':id==='employment'?'거주지 기준 지역별고용조사입니다. 근무지 기준 산업 통계와 집계 범위가 다릅니다.':id==='population'?'주민등록인구 기준으로 외국인 인구는 포함하지 않습니다.':id==='unsold'?'원자료의 구분별 수치입니다. 준공 후 미분양이 별도 제공되지 않으면 임의로 추정하지 않습니다.':'주민등록세대수이며 실제 주택 수나 입주 수요와 같지 않습니다.'}</p><a href="${esc(t.source)}" target="_blank" rel="noopener">KOSIS 원표 ↗</a></article>`;

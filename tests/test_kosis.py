@@ -16,6 +16,12 @@ class KosisTests(unittest.TestCase):
         result=normalize(self.rows())
         self.assertEqual(result['jinju'][0]['label'],'미분양 · 계')
         self.assertEqual(result['jinju'][0]['unit'],'호')
+    def test_rate_overrides_table_wide_count_unit(self):
+        rows=self.rows()
+        for row in rows:row.update(ITM_NM='고용률 (%)', UNIT_NM='천명')
+        self.assertEqual(normalize(rows)['jinju'][0]['unit'],'%')
+        for row in rows:row.update(ITM_NM='취업자 (천명)')
+        self.assertEqual(normalize(rows)['jinju'][0]['unit'],'천명')
     def test_duplicate_rejected(self):
         rows=self.rows()
         with self.assertRaises(ValueError):normalize(rows+[rows[0]])
