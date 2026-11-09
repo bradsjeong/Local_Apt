@@ -34,6 +34,10 @@ jobs:
         env:
           APPLYHOME_SERVICE_KEY: ${{ secrets.APPLYHOME_SERVICE_KEY }}
         run: python scripts/collect_applyhome.py
+      - name: Collect KOSIS statistics
+        env:
+          KOSIS_API_KEY: ${{ secrets.KOSIS_API_KEY }}
+        run: python scripts/collect_kosis.py
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Preserve data snapshot
